@@ -9,6 +9,10 @@ const app = express();
 
 // Accept raw text (no JSON issues)
 app.use(express.text({ type: "*/*" }));
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+  //res.send("Please send a POST request with your user story in the body.");
+});
 
 app.post("/ask", async (req, res) => {
   const prompt = `
