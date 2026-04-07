@@ -1,6 +1,17 @@
 const express = require("express");
 require("dotenv").config();
+const { MongoClient } = require("mongodb");
 
+//mongodb connect
+const client = new MongoClient("mongodb://mongo:27017/story-to-code")
+
+let db;
+async function connectdb() {
+  await client.connect();
+  db = client.db("story-to-code");
+  console.log("mongodb connected");
+}
+connectdb();
 // Safe fetch for Node
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
@@ -63,7 +74,7 @@ ${req.body}
     const data = await response.json();
 
     // Optional debug (remove later)
-    console.log("Groq response:", JSON.stringify(data, null, 2));
+    //console.log("Groq response:", JSON.stringify(data, null, 2));
 
     if (!data.choices || data.choices.length === 0) {
       return res.status(400).json({
@@ -72,6 +83,11 @@ ${req.body}
       });
     }
 
+    await db.collection("logs").insertOne({
+      prompt: req.body,
+      response:  data.choices[0].message.content.trim(),
+      timestamp: new Date()
+    });
     res.type("text/plain").send(
       data.choices[0].message.content.trim()
     );
